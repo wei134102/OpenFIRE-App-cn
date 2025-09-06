@@ -1,8 +1,9 @@
 name: CMake - Linux AppImages
 
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
+  #push:
+  #pull_request:
 
 jobs:
   build:
