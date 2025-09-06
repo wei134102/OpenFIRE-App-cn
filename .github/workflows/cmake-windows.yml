@@ -1,8 +1,9 @@
 name: CMake - Windows 10+ Packages
-
+#改成手动运行
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
+  # push:
+  # pull_request:
 
 jobs:
   build:
