@@ -1,3 +1,4 @@
 [submodule "boards"]
 	path = boards
-	url = https://github.com/TeamOpenFIRE/OpenFIRE-Boards
+ 	url = https://github.com/wei134102/OpenFIRE-Boards
+	# url = https://github.com/TeamOpenFIRE/OpenFIRE-Boards
