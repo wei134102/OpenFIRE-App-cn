@@ -257,6 +257,9 @@ private:
         item->setEnabled(enabled);
     }
 
+    /// @brief      Setup language selection menu
+    void SetupLanguageMenu();
+
     // ^^^---Methods---^^^
     //
     // vvv---Internal Values---vvv

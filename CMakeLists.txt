@@ -52,6 +52,8 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Con
 
 set(TS_FILES
         translation/AppTranslations_en_US.ts
+        translation/AppTranslations_zh_CN.ts
+        translation/AppTranslations_zh_TW.ts
 )
 
 set(PROJECT_SOURCES

@@ -20,10 +20,16 @@
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
+#include <QSettings>
+#include <QCoreApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    // Set settings scope for language preference, etc.
+    QCoreApplication::setOrganizationName(QStringLiteral("TeamOpenFIRE"));
+    QCoreApplication::setApplicationName(QStringLiteral("OpenFIREapp"));
 
 #ifdef Q_OS_WIN
     // set fusion style, which will use system palette on Qt 6.5+
@@ -37,12 +43,22 @@ int main(int argc, char *argv[])
 #endif // Q_OS_WIN
 
     QTranslator translator;
-    const QStringList uiLanguages = QLocale::system().uiLanguages();
-    for (const QString &locale : uiLanguages) {
-        const QString baseName = "AppTranslations_" + QLocale(locale).name();
+    QSettings settings;
+    const QString langPref = settings.value(QStringLiteral("language")).toString();
+
+    if (!langPref.isEmpty() && langPref != QLatin1String("system")) {
+        const QString baseName = QStringLiteral("AppTranslations_") + langPref;
         if (translator.load(":/i18n/" + baseName)) {
             a.installTranslator(&translator);
-            break;
+        }
+    } else {
+        const QStringList uiLanguages = QLocale::system().uiLanguages();
+        for (const QString &locale : uiLanguages) {
+            const QString baseName = QStringLiteral("AppTranslations_") + QLocale(locale).name();
+            if (translator.load(":/i18n/" + baseName)) {
+                a.installTranslator(&translator);
+                break;
+            }
         }
     }
     guiWindow w;

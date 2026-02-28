@@ -37,6 +37,10 @@
 #include <QDesktopServices>
 #include <QFontDatabase>
 #include <QUrl>
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
+#include <QSettings>
 
 guiWindow::guiWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -103,6 +107,9 @@ guiWindow::guiWindow(QWidget *parent)
 
     for(const auto &child : this->findChildren<QRadioButton*>())
         if(!child->property("trackable").isNull()) child->installEventFilter(this);
+
+    // Setup language selection menu
+    SetupLanguageMenu();
 
     // Connect boards view "custom layouts" actions to the button
     ui->customLayoutToolBtn->addActions({ui->actionImport_Custom_Layout, ui->actionExport_Custom_Layout});
@@ -269,6 +276,38 @@ guiWindow::~guiWindow()
 #endif
 
     delete ui;
+}
+
+void guiWindow::SetupLanguageMenu()
+{
+    QMenu *langMenu = menuBar()->addMenu(tr("Language"));
+
+    QAction *actSystem = langMenu->addAction(tr("Follow system language"));
+    QAction *actEn     = langMenu->addAction(tr("English"));
+    QAction *actZhCN   = langMenu->addAction(tr("简体中文"));
+    QAction *actZhTW   = langMenu->addAction(tr("繁體中文"));
+
+    auto changeLanguage = [this](const QString &code) {
+        QSettings settings;
+        settings.setValue(QStringLiteral("language"), code);
+
+        const QMessageBox::StandardButton res = QMessageBox::question(
+            this,
+            tr("Language Changed"),
+            tr("Language will take effect after restart.\nRestart now?"),
+            QMessageBox::Yes | QMessageBox::No
+        );
+
+        if (res == QMessageBox::Yes) {
+            QProcess::startDetached(QApplication::applicationFilePath(), QApplication::arguments());
+            QApplication::quit();
+        }
+    };
+
+    connect(actSystem, &QAction::triggered, this, [changeLanguage]() { changeLanguage(QStringLiteral("system")); });
+    connect(actEn,     &QAction::triggered, this, [changeLanguage]() { changeLanguage(QStringLiteral("en_US")); });
+    connect(actZhCN,   &QAction::triggered, this, [changeLanguage]() { changeLanguage(QStringLiteral("zh_CN")); });
+    connect(actZhTW,   &QAction::triggered, this, [changeLanguage]() { changeLanguage(QStringLiteral("zh_TW")); });
 }
 
 
