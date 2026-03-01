@@ -514,6 +514,33 @@
                  </item>
                 </widget>
                </item>
+               <item>
+                <widget class="QLabel" name="label_StickKeysLayout">
+                 <property name="text">
+                  <string>Stick Keys (when Keyboard):</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="aStickKeysLayoutBox">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="accessibleName">
+                  <string>Stick Keys Layout</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>方向键 (Arrows)</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>WASD</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
               </layout>
              </widget>
             </item>

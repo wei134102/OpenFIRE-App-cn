@@ -974,6 +974,8 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->customPinsEnabled->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::customPins]);
 
             ui->aStickModeBox->setCurrentIndex(App_Common::settingsTable[App_Common::dataOrig][OF_Const::analogMode]);
+            ui->aStickKeysLayoutBox->setCurrentIndex(static_cast<int>(App_Common::settingsTable[App_Common::dataOrig][OF_Const::analogKeysLayout])); // 0=Arrows, 1=WASD
+            ui->aStickKeysLayoutBox->setEnabled(App_Common::settingsTable[App_Common::dataOrig][OF_Const::analogMode] == OF_Const::analogModeKeys);
 
             ui->rumbleToggle->setChecked(App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumble]);
             ui->rumbleSettingsBox->setEnabled(App_Common::boolSettings[App_Common::dataOrig][OF_Const::rumble]);
@@ -1289,7 +1291,13 @@ void guiWindow::btnFuncBox_currentTextChanged(const QString &str)
 void guiWindow::on_aStickModeBox_currentIndexChanged(int index)
 {
     App_Common::settingsTable[App_Common::dataCurrent][OF_Const::analogMode] = index;
+    ui->aStickKeysLayoutBox->setEnabled(index == OF_Const::analogModeKeys);
+    DiffUpdate();
+}
 
+void guiWindow::on_aStickKeysLayoutBox_currentIndexChanged(int index)
+{
+    App_Common::settingsTable[App_Common::dataCurrent][OF_Const::analogKeysLayout] = static_cast<uint32_t>(index);
     DiffUpdate();
 }
 

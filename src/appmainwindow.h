@@ -83,6 +83,7 @@ private slots:
     void btnFuncBox_currentTextChanged(const QString &);
 
     void on_aStickModeBox_currentIndexChanged(int index);
+    void on_aStickKeysLayoutBox_currentIndexChanged(int index);
 
     /// gun settings
     void on_rumbleToggle_stateChanged(int arg1);
