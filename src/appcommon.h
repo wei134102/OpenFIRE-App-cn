@@ -157,7 +157,7 @@ public:
         {"Left Shift",                  {0x81,      13}},
         {"Right Shift",                 {0x85,      14}},
         {"Tab",                         {0xB3,      15}},
-        {"Space",                       {0x20,      16}},
+        {"Space",                       {0x20,      16}},//增加SPACE按键并需要同步更改kbOrderedStrings[55]; 数量
         {"A",                           {'a',       17}},
         {"B",                           {'b',       18}},
         {"C",                           {'c',       19}},
