@@ -22,6 +22,7 @@
 #include <QTranslator>
 #include <QSettings>
 #include <QCoreApplication>
+#include <QDir>
 
 int main(int argc, char *argv[])
 {
@@ -46,17 +47,32 @@ int main(int argc, char *argv[])
     QSettings settings;
     const QString langPref = settings.value(QStringLiteral("language")).toString();
 
+    auto tryLoadTranslation = [&](const QString &baseName) -> bool {
+        // Primary: compiled-in resources (when translations are embedded under ":/i18n/")
+        if (translator.load(QStringLiteral(":/i18n/") + baseName)) {
+            a.installTranslator(&translator);
+            return true;
+        }
+
+        // Fallback: app-local directory (useful for portable builds)
+        const QString appDir = QCoreApplication::applicationDirPath();
+        const QString i18nDir = QDir(appDir).filePath(QStringLiteral("i18n"));
+        if (translator.load(baseName, i18nDir)) {
+            a.installTranslator(&translator);
+            return true;
+        }
+
+        return false;
+    };
+
     if (!langPref.isEmpty() && langPref != QLatin1String("system")) {
         const QString baseName = QStringLiteral("AppTranslations_") + langPref;
-        if (translator.load(":/i18n/" + baseName)) {
-            a.installTranslator(&translator);
-        }
+        tryLoadTranslation(baseName);
     } else {
         const QStringList uiLanguages = QLocale::system().uiLanguages();
         for (const QString &locale : uiLanguages) {
             const QString baseName = QStringLiteral("AppTranslations_") + QLocale(locale).name();
-            if (translator.load(":/i18n/" + baseName)) {
-                a.installTranslator(&translator);
+            if (tryLoadTranslation(baseName)) {
                 break;
             }
         }

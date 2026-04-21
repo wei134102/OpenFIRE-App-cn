@@ -88,7 +88,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${CMAKE_CURRENT_SOURCE_DIR}/img/ico/icon.rc
         ${PROJECT_SOURCES}
     )
-    qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+    # Build TS -> QM and embed them into the application resources under ":/i18n/"
+    # so the runtime loader `translator.load(":/i18n/AppTranslations_xx_YY")` works.
+    qt_add_translations(OpenFIREapp
+        TS_FILES ${TS_FILES}
+    )
 
 else()
     add_executable(OpenFIREapp
