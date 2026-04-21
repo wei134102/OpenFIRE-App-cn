@@ -40,6 +40,7 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
+#include <QActionGroup>
 #include <QSettings>
 
 guiWindow::guiWindow(QWidget *parent)
@@ -110,6 +111,7 @@ guiWindow::guiWindow(QWidget *parent)
 
     // Setup language selection menu
     SetupLanguageMenu();
+    SetupInputModeMenu();
 
     // Connect boards view "custom layouts" actions to the button
     ui->customLayoutToolBtn->addActions({ui->actionImport_Custom_Layout, ui->actionExport_Custom_Layout});
@@ -308,6 +310,65 @@ void guiWindow::SetupLanguageMenu()
     connect(actEn,     &QAction::triggered, this, [changeLanguage]() { changeLanguage(QStringLiteral("en_US")); });
     connect(actZhCN,   &QAction::triggered, this, [changeLanguage]() { changeLanguage(QStringLiteral("zh_CN")); });
     connect(actZhTW,   &QAction::triggered, this, [changeLanguage]() { changeLanguage(QStringLiteral("zh_TW")); });
+}
+
+void guiWindow::SetupInputModeMenu()
+{
+    inputModeMenu = menuBar()->addMenu(tr("Input Mode"));
+
+    inputModeActionGroup = new QActionGroup(this);
+    inputModeActionGroup->setExclusive(true);
+
+    modeMouseAction = inputModeMenu->addAction(tr("Mouse Mode"));
+    modeGamepadAction = inputModeMenu->addAction(tr("Gamepad Mode"));
+    modeMisterAction = inputModeMenu->addAction(tr("MiSTer Mode"));
+
+    modeMouseAction->setCheckable(true);
+    modeGamepadAction->setCheckable(true);
+    modeMisterAction->setCheckable(true);
+
+    inputModeActionGroup->addAction(modeMouseAction);
+    inputModeActionGroup->addAction(modeGamepadAction);
+    inputModeActionGroup->addAction(modeMisterAction);
+
+    // Default before first device sync.
+    modeMouseAction->setChecked(true);
+    inputModeMenu->setEnabled(false);
+
+    connect(modeMouseAction, &QAction::triggered, this, [this]() {
+        if (serialActive) return;
+        App_Common::boolSettings[App_Common::dataCurrent][OF_Const::analogOutputMode] = false;
+        App_Common::boolSettings[App_Common::dataCurrent][OF_Const::misterMode] = false;
+        DiffUpdate();
+    });
+    connect(modeGamepadAction, &QAction::triggered, this, [this]() {
+        if (serialActive) return;
+        App_Common::boolSettings[App_Common::dataCurrent][OF_Const::analogOutputMode] = true;
+        App_Common::boolSettings[App_Common::dataCurrent][OF_Const::misterMode] = false;
+        DiffUpdate();
+    });
+    connect(modeMisterAction, &QAction::triggered, this, [this]() {
+        if (serialActive) return;
+        App_Common::boolSettings[App_Common::dataCurrent][OF_Const::analogOutputMode] = true;
+        App_Common::boolSettings[App_Common::dataCurrent][OF_Const::misterMode] = true;
+        DiffUpdate();
+    });
+}
+
+void guiWindow::RefreshInputModeMenuState()
+{
+    if (!modeMouseAction || !modeGamepadAction || !modeMisterAction) return;
+
+    const bool analogOutput = App_Common::boolSettings[App_Common::dataCurrent][OF_Const::analogOutputMode];
+    const bool mister = App_Common::boolSettings[App_Common::dataCurrent][OF_Const::misterMode];
+
+    if (!analogOutput) {
+        modeMouseAction->setChecked(true);
+    } else if (mister) {
+        modeMisterAction->setChecked(true);
+    } else {
+        modeGamepadAction->setChecked(true);
+    }
 }
 
 
@@ -1046,6 +1107,9 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
             ui->productIdInput->setValue(App_Common::tinyUSBtable.tinyUSBid);
             ui->productNameInput->setText(App_Common::tinyUSBtable.tinyUSBname);
 
+            RefreshInputModeMenuState();
+            if (inputModeMenu) inputModeMenu->setEnabled(true);
+
             ui->tabWidget->setCurrentIndex(0);
             ui->comPortSelector->setItemText(0, "[Disconnect Current Device]");
 
@@ -1078,6 +1142,13 @@ void guiWindow::on_comPortSelector_currentTextChanged(const QString &text)
         ui->confirmButton->setEnabled(false);
         ui->confirmButton->setText("[Currently Not Connected]");
         ui->confirmButton->setIcon(QIcon());
+
+        if (inputModeMenu) {
+            inputModeMenu->setEnabled(false);
+        }
+        if (modeMouseAction) {
+            modeMouseAction->setChecked(true);
+        }
     }
     serialActive = false;
 }

@@ -47,6 +47,24 @@ int main(int argc, char *argv[])
     QSettings settings;
     const QString langPref = settings.value(QStringLiteral("language")).toString();
 
+    auto translationBaseNamesForLocale = [](const QString &localeName) -> QStringList {
+        // Translation files were renamed to "AppTranslations_en_US_<locale>".
+        // Some files use only language code (e.g. "fr"), so we try both.
+        QStringList bases;
+        if (localeName == QLatin1String("en_US")) {
+            bases << QStringLiteral("AppTranslations_en_US");
+            return bases;
+        }
+
+        bases << (QStringLiteral("AppTranslations_en_US_") + localeName);
+        const int sepPos = localeName.indexOf(QLatin1Char('_'));
+        if (sepPos > 0) {
+            const QString langOnly = localeName.left(sepPos);
+            bases << (QStringLiteral("AppTranslations_en_US_") + langOnly);
+        }
+        return bases;
+    };
+
     auto tryLoadTranslation = [&](const QString &baseName) -> bool {
         // Primary: compiled-in resources (when translations are embedded under ":/i18n/")
         if (translator.load(QStringLiteral(":/i18n/") + baseName)) {
@@ -66,17 +84,23 @@ int main(int argc, char *argv[])
     };
 
     if (!langPref.isEmpty() && langPref != QLatin1String("system")) {
-        const QString baseName = QStringLiteral("AppTranslations_") + langPref;
-        tryLoadTranslation(baseName);
-    } else {
-        const QStringList uiLanguages = QLocale::system().uiLanguages();
-        for (const QString &locale : uiLanguages) {
-            const QString baseName = QStringLiteral("AppTranslations_") + QLocale(locale).name();
+        for (const QString &baseName : translationBaseNamesForLocale(langPref)) {
             if (tryLoadTranslation(baseName)) {
                 break;
             }
         }
+    } else {
+        const QStringList uiLanguages = QLocale::system().uiLanguages();
+        for (const QString &locale : uiLanguages) {
+            const QString localeName = QLocale(locale).name();
+            for (const QString &baseName : translationBaseNamesForLocale(localeName)) {
+                if (tryLoadTranslation(baseName)) {
+                    goto translation_loaded;
+                }
+            }
+        }
     }
+translation_loaded:
     guiWindow w;
     w.show();
     return a.exec();

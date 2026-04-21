@@ -1,0 +1,1 @@
+& "D:\qt\6.5.3\mingw_64\bin\lupdate.exe" . -recursive -ts "translation/AppTranslations_en_US.ts"

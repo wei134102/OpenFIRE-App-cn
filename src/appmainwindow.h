@@ -47,6 +47,8 @@
 #include <QRadioButton>
 #include <QSvgWidget>
 #include <QProgressBar>
+#include <QActionGroup>
+#include <QMenu>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -260,6 +262,8 @@ private:
 
     /// @brief      Setup language selection menu
     void SetupLanguageMenu();
+    void SetupInputModeMenu();
+    void RefreshInputModeMenuState();
 
     // ^^^---Methods---^^^
     //
@@ -336,5 +340,10 @@ private:
     QVector<QPushButton*> caliBtn;
 
     QProgressBar *statusProgressBar = nullptr;
+    QAction *modeMouseAction = nullptr;
+    QAction *modeGamepadAction = nullptr;
+    QAction *modeMisterAction = nullptr;
+    QActionGroup *inputModeActionGroup = nullptr;
+    QMenu *inputModeMenu = nullptr;
 };
 #endif // GUIWINDOW_H

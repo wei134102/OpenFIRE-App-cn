@@ -52,8 +52,8 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Con
 
 set(TS_FILES
         translation/AppTranslations_en_US.ts
-        translation/AppTranslations_zh_CN.ts
-        translation/AppTranslations_zh_TW.ts
+        translation/AppTranslations_en_US_zh_CN.ts
+        translation/AppTranslations_en_US_zh_TW.ts
 )
 
 set(PROJECT_SOURCES
@@ -89,7 +89,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
     )
     # Build TS -> QM and embed them into the application resources under ":/i18n/"
-    # so the runtime loader `translator.load(":/i18n/AppTranslations_xx_YY")` works.
+    # so the runtime loader can resolve the renamed translation bases.
     qt_add_translations(OpenFIREapp
         TS_FILES ${TS_FILES}
     )
