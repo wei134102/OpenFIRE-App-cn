@@ -23,6 +23,10 @@
 #include <QMessageBox>
 #include <qtconcurrentrun.h>
 
+namespace {
+const QByteArray kRequiredFirmwareVersion = "66.1";
+}
+
 bool AppSerial::SearchPorts()
 {
     QList<QSerialPortInfo> serialFoundList = QSerialPortInfo::availablePorts();
@@ -97,6 +101,19 @@ bool AppSerial::GetSettings(const QString &portName)
                     ////* Opening board message bits *////
                     App_Common::board.version = buffer.takeFirst().constData();
                     printf("Version number: %s\n", App_Common::board.version.constData());
+
+                    QByteArray firmwareVersionBase = App_Common::board.version;
+                    if(int suffixPos = firmwareVersionBase.indexOf('-'); suffixPos > -1)
+                        firmwareVersionBase.truncate(suffixPos);
+
+                    if(firmwareVersionBase != kRequiredFirmwareVersion) {
+                        ShowError("Unsupported firmware!",
+                                  "<p>This firmware is not supported by this App.</p>",
+                                  QMessageBox::Critical);
+                        OneShotSend((char)OF_Const::serialTerminator);
+                        port.close();
+                        return false;
+                    }
 
                     App_Common::board.type = buffer.takeFirst().constData();
                     printf("Board type: %s\n", App_Common::board.type.constData());
