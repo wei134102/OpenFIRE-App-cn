@@ -24,7 +24,7 @@
 #include <qtconcurrentrun.h>
 
 namespace {
-const QByteArray kRequiredFirmwareVersion = "66.1";
+const QByteArray kRequiredFirmwareMajor = "66";
 }
 
 bool AppSerial::SearchPorts()
@@ -106,7 +106,10 @@ bool AppSerial::GetSettings(const QString &portName)
                     if(int suffixPos = firmwareVersionBase.indexOf('-'); suffixPos > -1)
                         firmwareVersionBase.truncate(suffixPos);
 
-                    if(firmwareVersionBase != kRequiredFirmwareVersion) {
+                    // Accept any 66.x firmware (e.g. 66.1, 66.2, 66.2-custom).
+                    const int dotPos = firmwareVersionBase.indexOf('.');
+                    const QByteArray major = (dotPos > 0) ? firmwareVersionBase.left(dotPos) : firmwareVersionBase;
+                    if(major != kRequiredFirmwareMajor) {
                         ShowError("Unsupported firmware!",
                                   "<p>This firmware is not supported by this App.</p>",
                                   QMessageBox::Critical);
