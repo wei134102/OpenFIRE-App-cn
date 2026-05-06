@@ -5,20 +5,31 @@ REM One-click build/deploy for OpenFIRE-App-cn (Qt 6 + MinGW + Ninja)
 REM Usage:
 REM   build_one_click_mingw_qt6.bat
 REM   build_one_click_mingw_qt6.bat --no-clean
+REM   build_one_click_mingw_qt6.bat --no-clean --pause
+REM
+REM Optional environment overrides (if your Qt/MinGW/CMake paths differ):
+REM   set QT_ROOT=C:\Qt\6.5.3\mingw_64
+REM   set MINGW_BIN=C:\Qt\Tools\mingw1120_64\bin
+REM   set CMAKE_EXE=C:\Program Files\CMake\bin\cmake.exe
+REM   set NINJA_DIR=C:\tools   (directory containing ninja.exe, prepended to PATH)
 
 set "ROOT=%~dp0"
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
-set "QT_ROOT=D:\qt\6.5.3\mingw_64"
-set "MINGW_BIN=D:\qt\Tools\mingw1120_64\bin"
-set "CMAKE_EXE=C:\Program Files\CMake\bin\cmake.exe"
+if not defined QT_ROOT set "QT_ROOT=D:\qt\6.5.3\mingw_64"
+if not defined MINGW_BIN set "MINGW_BIN=D:\qt\Tools\mingw1120_64\bin"
+if not defined CMAKE_EXE set "CMAKE_EXE=C:\Program Files\CMake\bin\cmake.exe"
+if defined NINJA_DIR set "PATH=%NINJA_DIR%;%PATH%"
 set "BUILD_DIR=%ROOT%\build\cli-mingw-work"
 set "DIST_DIR=%ROOT%\build\cli-mingw-release"
 set "EXE_PATH=%BUILD_DIR%\OpenFIREapp.exe"
 set "DIST_EXE=%DIST_DIR%\OpenFIREapp.exe"
 
 set "DO_CLEAN=1"
+set "DO_PAUSE=0"
 if /I "%~1"=="--no-clean" set "DO_CLEAN=0"
+if /I "%~2"=="--pause" set "DO_PAUSE=1"
+if /I "%~1"=="--pause" set "DO_PAUSE=1"
 
 echo [INFO] Project root: %ROOT%
 echo [INFO] Build work  : %BUILD_DIR%
@@ -28,14 +39,20 @@ echo.
 
 if not exist "%CMAKE_EXE%" (
   echo [ERROR] CMake not found: %CMAKE_EXE%
+  echo [HINT] Install CMake or set CMAKE_EXE to cmake.exe full path.
+  if "%DO_PAUSE%"=="1" pause
   exit /b 1
 )
 if not exist "%QT_ROOT%\bin\windeployqt.exe" (
   echo [ERROR] windeployqt not found: %QT_ROOT%\bin\windeployqt.exe
+  echo [HINT] Set QT_ROOT to your Qt 6.x mingw_64 folder ^(contains bin\qmake6.exe or Qt6Core.dll^).
+  if "%DO_PAUSE%"=="1" pause
   exit /b 1
 )
 if not exist "%MINGW_BIN%\g++.exe" (
   echo [ERROR] MinGW g++ not found: %MINGW_BIN%\g++.exe
+  echo [HINT] Set MINGW_BIN to the same Kit's Tools\mingw*_64\bin used by that Qt.
+  if "%DO_PAUSE%"=="1" pause
   exit /b 1
 )
 
@@ -43,7 +60,9 @@ set "PATH=%QT_ROOT%\bin;%MINGW_BIN%;C:\tools;%PATH%"
 
 where ninja >nul 2>&1
 if errorlevel 1 (
-  echo [ERROR] ninja not found in PATH. Expected at C:\tools\ninja.exe
+  echo [ERROR] ninja not found in PATH.
+  echo [HINT] Download ninja.exe and either add its folder to PATH or set NINJA_DIR to that folder, then re-run.
+  if "%DO_PAUSE%"=="1" pause
   exit /b 1
 )
 
@@ -74,13 +93,15 @@ echo [STEP] Configuring...
   -DCMAKE_CXX_COMPILER="%MINGW_BIN%\g++.exe"
 if errorlevel 1 (
   echo [ERROR] CMake configure failed.
+  if "%DO_PAUSE%"=="1" pause
   exit /b 1
 )
 
 echo [STEP] Building...
 "%CMAKE_EXE%" --build "%BUILD_DIR%" -j
 if errorlevel 1 (
-  echo [ERROR] Build failed.
+  echo [ERROR] Build failed. See compiler output above ^(e.g. appserial.cpp / ShowError types^).
+  if "%DO_PAUSE%"=="1" pause
   exit /b 1
 )
 
@@ -147,5 +168,6 @@ echo [OK] Build + minimal release completed.
 echo [OK] Run: %DIST_EXE%
 echo [TIP] Work files are in: %BUILD_DIR%
 echo [TIP] Use --no-clean for incremental rebuild.
+echo [TIP] Add --pause as last arg to keep window open on error.
 exit /b 0
 

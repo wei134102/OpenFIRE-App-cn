@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QMessageBox>
+#include <QString>
 #include <QSerialPort>
 #include <QSerialPortInfo>
 
@@ -107,13 +108,16 @@ public:
     void RebootToBootldr();
 
     /// @brief      Show error message popup regarding serial
-    void ShowError(const char* titleText, const char* text, const QMessageBox::Icon icon = QMessageBox::Warning) {
+    void ShowError(const char* titleText, const QString &text, const QMessageBox::Icon icon = QMessageBox::Warning) {
         if(!syncError.isVisible()) {
-            syncError.setWindowTitle(titleText);
+            syncError.setWindowTitle(QString::fromUtf8(titleText));
             syncError.setText(text);
             syncError.setIcon(icon);
             syncError.show();
         }
+    }
+    void ShowError(const char* titleText, const char* text, const QMessageBox::Icon icon = QMessageBox::Warning) {
+        ShowError(titleText, QString::fromUtf8(text), icon);
     }
 
 private:

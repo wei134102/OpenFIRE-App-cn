@@ -24,7 +24,10 @@
 #include <qtconcurrentrun.h>
 
 namespace {
-const QByteArray kRequiredFirmwareMajor = "66";
+// 与上游 semver 对齐的主版本（当前固件报告为 6.x）；官方 App 若需兼容可自行调整。
+const QByteArray kRequiredFirmwareMajor = "6";
+// 与固件 OPENFIRE_APP_FORK_TAG_STR 一致（Dock 首段含 "+cnwei" 或任意位置含该子串）。
+const QByteArray kRequiredForkTag = "cnwei";
 }
 
 bool AppSerial::SearchPorts()
@@ -106,12 +109,24 @@ bool AppSerial::GetSettings(const QString &portName)
                     if(int suffixPos = firmwareVersionBase.indexOf('-'); suffixPos > -1)
                         firmwareVersionBase.truncate(suffixPos);
 
-                    // Accept any 66.x firmware (e.g. 66.1, 66.2, 66.2-custom).
+                    // 主版本与上游一致（如 6.x）；另须含 fork 渠道标记，避免误连未打补丁的官方固件。
                     const int dotPos = firmwareVersionBase.indexOf('.');
                     const QByteArray major = (dotPos > 0) ? firmwareVersionBase.left(dotPos) : firmwareVersionBase;
                     if(major != kRequiredFirmwareMajor) {
                         ShowError("Unsupported firmware!",
-                                  "<p>This firmware is not supported by this App.</p>",
+                                  QStringLiteral("<p>This firmware is not supported by this App.</p>"
+                                                 "<p>Expected major version %1.</p>")
+                                      .arg(QString::fromLatin1(kRequiredFirmwareMajor)),
+                                  QMessageBox::Critical);
+                        OneShotSend((char)OF_Const::serialTerminator);
+                        port.close();
+                        return false;
+                    }
+                    if(!App_Common::board.version.contains(kRequiredForkTag)) {
+                        ShowError("Unsupported firmware!",
+                                  QStringLiteral("<p>This App only connects to this fork's firmware (missing channel tag <b>%1</b>).</p>"
+                                                 "<p>Flash the matching OpenFIRE build, or use the official OpenFIRE App with official firmware.</p>")
+                                      .arg(QString::fromLatin1(kRequiredForkTag)),
                                   QMessageBox::Critical);
                         OneShotSend((char)OF_Const::serialTerminator);
                         port.close();
