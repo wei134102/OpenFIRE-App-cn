@@ -54,6 +54,7 @@ set(TS_FILES
         translation/AppTranslations_en_US.ts
         translation/AppTranslations_en_US_zh_CN.ts
         translation/AppTranslations_en_US_zh_TW.ts
+        translation/AppTranslations_it_IT.ts
 )
 
 set(PROJECT_SOURCES
@@ -88,19 +89,17 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${CMAKE_CURRENT_SOURCE_DIR}/img/ico/icon.rc
         ${PROJECT_SOURCES}
     )
-    # Build TS -> QM and embed them into the application resources under ":/i18n/"
-    # so the runtime loader can resolve the renamed translation bases.
-    qt_add_translations(OpenFIREapp
+    # Build TS -> QM and embed them into the application resources
+    qt_add_translations(
+        TARGETS OpenFIREapp
         TS_FILES ${TS_FILES}
     )
-
 else()
     add_executable(OpenFIREapp
         ${CMAKE_CURRENT_SOURCE_DIR}/img/ico/icon.rc
         ${PROJECT_SOURCES}
     )
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
-
 endif()
 
 target_link_libraries(OpenFIREapp PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::SerialPort)
